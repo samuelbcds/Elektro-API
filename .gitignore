@@ -1,0 +1,7 @@
+node_modules/
+    .DS_Store
+    *.sqlite
+    *.jpg
+    .idea
+    id_rsa_priv.pem
+.env
