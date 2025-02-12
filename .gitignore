@@ -5,3 +5,5 @@ node_modules/
     .idea
     id_rsa_priv.pem
 .env
+id_rsa_pub.pem
+id_rsa_priv.pem
