@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import auth from '../config/auth';
+import { Mailer } from '../config/mailer';
 
 const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
@@ -8,14 +10,18 @@ const prisma = new PrismaClient({
 class UsuarioController {
 
   public async criarUsuario(req: Request, res: Response) {
+
+    const { nome, dataNasc, email, senha} = req.body;
+    const { hash, salt } = auth.generatePassword(senha);
+
     try {
-      const { nome, dataNasc, email, senha } = req.body;
       const usuario = await prisma.usuario.create({
         data: {
           nome: nome,
           dataNasc: dataNasc,
           email: email,
-          senha: senha,
+          hash : hash,
+          salt: salt
         },
       });
       res.status(201).json(usuario);
@@ -67,13 +73,15 @@ class UsuarioController {
   public async atualizarUsuario(req: Request, res: Response) {
     const { id } = req.params;
     const { nome, email, senha } = req.body;
+    const {hash, salt} = auth.generatePassword(senha)
     try {
       const usuario = await prisma.usuario.update({
         where: { id: parseInt(id) },
         data: {
           nome: nome,
           email: email,
-          senha: senha,
+          hash,
+          salt
         },
       });
       res.status(200).json(usuario);
@@ -100,6 +108,53 @@ class UsuarioController {
       });
     }
   }
-}
+  public async login(request: Request, response: Response) {
 
+
+    try {
+        
+        const {email, senha} = request.body;
+
+        const user = await prisma.usuario.findUnique({
+            where:{ email: email}
+        });
+
+        if(!user)
+            response.status(400).json({message:"usuário não existe"})
+
+        const {hash, salt} = user as {hash: string, salt: string}
+
+        if(!auth.checkPassword(senha, hash, salt)){
+            response.status(400).json({message:"Senha incorreta"})
+        }
+        const token = auth.generateJWT(user);
+
+        response.status(201).json({message:"Token enviado" ,token: token})
+
+    } catch (error) {
+        response.status(500).json({message: "Server Error"})
+
+    }}
+
+  public async testAuthetication(request : Request , response : Response){
+    const email = request.user
+
+    if(!email){
+      response.status(401).json({message: "Acesso não autorizado"})
+    }
+
+    response.status(201).json({message: "Acesso autorizado!", email})
+  }
+
+  public async sendEmail(request: Request, response: Response) {
+    const { recipient, subject, message } = request.body;
+
+    try {
+      Mailer.sendEmail(recipient, subject, message);
+      response.status(201).json({ message: 'Email sent' });
+    } catch (error) {
+      response.status(500).json({ message: 'Server Error', error });
+    }
+  }
+}
 export const usuarioController = new UsuarioController();

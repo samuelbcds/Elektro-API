@@ -18,8 +18,9 @@ model Usuario {
   nome      String
   dataNasc  DateTime 
   email     String   @unique
-  senha     String
+  hash      String
   pedidos   Pedido[]
+  salt      String
 
   @@map("usuarios")
 }
