@@ -113,7 +113,8 @@ Esta documentação descreve os endpoints disponíveis na API Elektro. Abaixo es
 ## Como Usar
 
 1. Clone o repositório.
-2. Utilize ferramentas como [Postman](https://www.postman.com/) ou [Insomnia](https://insomnia.rest/) para testar os endpoints.
+2. No terminal rode o comando 'npx run keys'
+3. Utilize ferramentas como [Postman](https://www.postman.com/) ou [Insomnia](https://insomnia.rest/) para testar os endpoints.
 
 ---
 
